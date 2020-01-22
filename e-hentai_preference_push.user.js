@@ -11,7 +11,7 @@
 // @include     https://e-hentai.org/tag/*
 // @include     https://exhentai.org/g/*
 // @include     https://e-hentai.org/g/*
-// @version     1.1
+// @version     1.3
 // @grant       GM_xmlhttpRequest
 // @grant         GM_registerMenuCommand
 // @grant         GM_setValue
@@ -41,7 +41,7 @@ var VisitLinks;
 var BlackTags;
 var DivCount;
 class Gallery{
-    constructor(href,other) {
+    constructor(href,other=null) {
         this.method = 'GET';
         this.url = href;
         this.headers = {
@@ -80,7 +80,6 @@ function init() {
     debug("init");
     VisitTags={};
     VisitLinks=[];
-    BlackTags="";
     try{
         VisitTags=JSON.parse(GM_getValue("VisitTags"));
         VisitLinks=GM_getValue("VisitLinks").split(",");
@@ -88,7 +87,11 @@ function init() {
     }catch(e){
         debug("Not VisitTags.");
     }
-debug("BlackTags: "+BlackTags);
+    if(BlackTags==undefined){
+        BlackTags="";
+
+    }
+    debug("BlackTags: "+BlackTags);
     if(window.location.href.match(/(https:\/\/e(-|x)hentai\.org\/g\/[\d\w]*\/[\d\w]*\/)/)!=null){
         if(!VisitLinks.includes(window.location.href)){
             VisitLinks.push(window.location.href);
@@ -132,7 +135,25 @@ function CreateButton(){
     var p=document.querySelector("p.nopm");
     p.insertBefore(btn,null);
 }
+function SetExtended(){
+    hostname=getLocation(window.location.href).hostname;
+    var select=document.querySelector("select");
+    var options=select.querySelectorAll("option");
+    for(var option of options){
+        var value=option.getAttribute("value");
+        var selected=option.getAttribute("selected");
+        if(value=="e"){
+            if(selected=="selected"){
+                break;
+            }
+            else{
+                alert("Page will set to Extended view, After refresh click button again please.")
+                window.location.href="https://"+hostname+"/?inline_set=dm_"+value;
+            }
+        }
+    }
 
+}
 function  ShowRecommand() {
     debug("ShowRecommand");
     //window.location.href+="#E-Hentai_Display_Tag_with_thumb";
@@ -140,23 +161,14 @@ function  ShowRecommand() {
     GetFavTag();
     debug(FavTags);
     CreateStyle();
-    hostname=getLocation(window.location.href).hostname;
-    var select=document.querySelector("select");
-    var options=select.querySelectorAll("option");
-    for(var option of options){
-        var value=option.getAttribute("value");
-        var selected=option.getAttribute("selected");
-        if(value=="t"){
-            if(selected=="selected"){
-                break;
-            }
-            else{
-                alert("Page will set to Thumbnail, then you click Button again.")
-                window.location.href="https://"+hostname+"/?inline_set=dm_t";
-            }
-        }
-    }
-    ContentPane=document.querySelector("div.itg.gld");
+    SetExtended();
+    var div=document.querySelector("div.ido");
+    div.style="max-width:1370px";
+    var table=document.querySelector("table.itg.glte");
+    var tbody=table.querySelector("tbody");
+    tbody.className="itg gld";
+    tbody.style="width:1323px";
+    ContentPane=tbody;
     ContentPaneChildNum=ContentPane.childNodes.length;
     FilledChildNum=0;
     //clear ContentPane
@@ -170,62 +182,97 @@ function FillPane(TotalPage){
     var table=document.querySelector("table.ptt");
     var tds=table.querySelectorAll("td");
     var TotalPage=parseInt(tds[tds.length-2].firstChild.innerText);
-            var RandomPage = Math.floor(Math.random() * (TotalPage+1 - 0));
-            ObjectGalleryPage=new GalleryPage(RandomPage);
+    var RandomPage = Math.floor(Math.random() * (TotalPage+1 - 0));
+    ObjectGalleryPage=new GalleryPage(RandomPage);
+    debug("RandomPage: "+ObjectGalleryPage.url);
     request(ObjectGalleryPage,SearchGallery);
 }
 
 function GetGalleryTag(responseDetails,divs) {
     debug("GetGalleryTag");
     try{
-        var div=divs[DivCount];
-        var responseText=responseDetails.responseText;
-        var dom = new DOMParser().parseFromString(responseText, "text/html");
-        var taglist = dom.querySelector('#taglist');
-        var links=taglist.querySelectorAll("a");
+        var tr=divs[DivCount];
         var count=0;
-        for(var link of links){
-            var tag=link.innerText;
-            for(var FavTag of FavTags) {
-                if(count>=3||count==FavTags.length){
-                    div.insertBefore(taglist, null);
-                    ContentPane.insertBefore(div,null);
-                    debug("Insert div");
-                    count=0;
-                    FilledChildNum++;
+        var Break;
+        //shuffle array
+        var shuffle=function (sourceArray) {
+            for (var i = 0; i < sourceArray.length - 1; i++) {
+                var j = i + Math.floor(Math.random() * (sourceArray.length - i));
+
+                var temp = sourceArray[j];
+                sourceArray[j] = sourceArray[i];
+                sourceArray[i] = temp;
+            }
+            return sourceArray;
+        }
+        var div = tr.querySelector("div.gl4e.glname");
+        table = div.childNodes[1].querySelector("table");
+        var href=tr.querySelector("a").href;
+        debug("href: "+href);
+        if (table != null) {
+            FavTags=shuffle(FavTags);
+            //debug("FavTags: "+FavTags);
+            var links = table.querySelectorAll("div");
+            for (var link of links) {
+                if (FavTags == 0) {
                     break;
                 }
-                else if (tag == FavTag.trim()) {
-                    //debug("FavTag: " + FavTag);
-                    link.parentNode.className +=" glowbox";
-                    count++;
+                var tag = link.innerText;
+                for (var FavTag of FavTags) {
+                    if (count >= 8 || count == FavTags.length) {
+                        if (!VisitLinks.includes(href)) {
+                            tr.className = "gl1t";
+                            tr.style = "min-width:250px !important;width:263px !important;";
+                            var detail = tr.querySelector("div.gl3e");
+                            detail.className = "gl3t";
+                            var star = detail.querySelector("div.ir");
+                            star.style.margin = "auto";
+                            var thumb = tr.querySelector("td.gl1e");
+                            thumb.firstChild.style = "height:340px;";
+                            thumb.insertBefore(detail, null);
+                            ContentPane.insertBefore(tr, null);
+                            debug("Insert div");
+                            count = 0;
+                            FilledChildNum++;
+                            Break = true;
+                            break;
+                        }
+                    }
+                    else if (tag == FavTag.trim()) {
+                        //debug("FavTag: " + FavTag);
+                        link.className += " glowbox";
+                        count++;
+                    }
+                }
+                if (Break) {
+                    break;
                 }
             }
         }
-
     }
     catch(e){
         debug("Error: "+e);
     }
-    if(FilledChildNum<ContentPaneChildNum) {
-        if (DivCount < divs.length) {
+    if(FilledChildNum<=ContentPaneChildNum) {
+        if (DivCount < divs.length-1) {
             //for (var i = 0; i < divs.length; ++i) {
             //var div=divs[i];
-            if (FilledChildNum == ContentPaneChildNum - 1) {
+            if (FilledChildNum == ContentPaneChildNum) {
                 debug("finish");
                 return;
             }
             else if (FavTags.length == 0) {
-                ContentPane.insertBefore(div, null);
-                debug("Insert div");
-                FilledChildNum++;
+                debug("Insert divs");
+                for(div of divs){
+                    ContentPane.insertBefore(div, null);
+                    FilledChildNum++;
+
+                }
             }
             else {
                 debug("DivCount: " + DivCount);
-                var href = div.querySelector('a').href;
-                ObjectGallery = new Gallery(href, divs);
-                request(ObjectGallery, GetGalleryTag);
                 DivCount++;
+                GetGalleryTag(null,divs);
             }
         }
         else {
@@ -238,7 +285,9 @@ function GetFavTag(){
     //convert object to array
     var sortable = [];
     for (var VisitTag in VisitTags) {
+        if(VisitTag.match(/^\d*$/)==null){
         sortable.push([VisitTag, VisitTags[VisitTag]]);
+        }
     }
 
     //sort by reverse
@@ -273,16 +322,16 @@ function GetFavTag(){
         if(VisitTags[VisitTag]==1){
             return;
         }
-        if(!BlackTags.includes(VisitTag.trim())){
+        else if(!BlackTags.includes(VisitTag.trim())){
             FavTags.push(VisitTag);
-        }
-        if(count==Math.floor(Object.keys(VisitTags).length/3)) {
-            //VisitTags too many, need shuffling
-            if(VisitTags[VisitTag]>=Math.floor(Object.keys(VisitTags).length/3)){
-                VisitTags=ArrayToObj(shuffle(sortable));
-                GM_setValue("VisitTags",JSON.stringify(VisitTags));
+            if(count==Math.floor(Object.keys(VisitTags).length/3)) {
+                //VisitTags too many, need shuffling
+                if(VisitTags[VisitTag]>=Math.floor(Object.keys(VisitTags).length/3)){
+                    VisitTags=ArrayToObj(shuffle(sortable));
+                    GM_setValue("VisitTags",JSON.stringify(VisitTags));
+                }
+                return;
             }
-            return;
         }
         count++;
     }
@@ -302,20 +351,20 @@ function SearchGallery(responseDetails) {
     //var href=responseText.match(/(https:\/\/e(-|x)hentai\.org\/g\/[\d\w]*\/[\d\w]*\/)/)[1];
     //debug("href: "+href);
     var dom = new DOMParser().parseFromString(responseText, "text/html");
-    var CurrentContentPane=dom.querySelector('div.itg.gld');
-    var divs = CurrentContentPane.querySelectorAll('div.gl1t');
+    var table=dom.querySelector("table.itg.glte");
+    var tbody=table.querySelector("tbody");
+    var CurrentContentPane=tbody;
+    var divs = CurrentContentPane.childNodes;
     for(var div of divs){
         var backgroundPosition=div.querySelector("div.ir").style.backgroundPosition;
         if(!["0px -21px","0px -1px"].includes(backgroundPosition)){
             CurrentContentPane.removeChild(div);
         }
     }
-    divs = CurrentContentPane.querySelectorAll('div.gl1t');
+    divs = CurrentContentPane.childNodes;
     debug("divs.length: "+divs.length);
     DivCount=0;
-    var href = divs[DivCount].querySelector('a').href;
-    ObjectGallery = new Gallery(href,divs);
-    request(ObjectGallery,GetGalleryTag);
+    GetGalleryTag(null,divs);
 }
 
 function request(object,func) {
