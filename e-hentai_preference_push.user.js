@@ -1,8 +1,14 @@
 // ==UserScript==
-// @name        e-hentai Preference Push
+// @name        e-hentai "you may like"
+// @name:ja        e-hentai "you may like"
+// @name:zh-TW         e-hentai "you may like"
+// @name:zh-CN        e-hentai "you may like"
 // @namespace   e-hentai_preference_push
 // @supportURL  https://github.com/zhuzemin
-// @description e-hentai 偏好推送
+// @description base visit history recommand gallery
+// @description:zh-CN base visit history recommand gallery
+// @description:zh-TW  base visit history recommand gallery
+// @description:ja base visit history recommand gallery
 // @include     https://exhentai.org/
 // @include     https://e-hentai.org/
 // @include     https://exhentai.org/?*
@@ -69,17 +75,17 @@ class GalleryPage{
 
 // prepare UserPrefs
 setUserPref(
-    'BlackTags',
+    'BlockTags',
     'multi-work series;translated;original;',
-    'Set BlackTags',
-    `These Tags will not be factor. split with ";". Example: "multi-work series;translated;original;"`,
+    'Set BlockTags',
+    `These Tags will not be factor for recommand. split with ";". Example: multi-work series;translated;original`,
     ','
 );
 
 function init() {
     debug("init");
-    VisitTags={};
-    VisitLinks=[];
+    VisitTags;
+    VisitLinks;
     try{
         VisitTags=JSON.parse(GM_getValue("VisitTags"));
         VisitLinks=GM_getValue("VisitLinks").split(",");
@@ -87,8 +93,16 @@ function init() {
     }catch(e){
         debug("Not VisitTags.");
     }
-    if(BlackTags==undefined){
+    if(BlackTags==undefined||BlackTags.length ==0){
         BlackTags="";
+
+    }
+    if(VisitTags==undefined||VisitTags.length ==0){
+        VisitTags={};
+
+    }
+    if(VisitLinks==undefined||VisitLinks.length ==0){
+        VisitLinks=[];
 
     }
     debug("BlackTags: "+BlackTags);

@@ -1,14 +1,12 @@
-# e-hentai Preference Push
-
 Compatibility:
 Firefox/Chrome,
 Greasemonkey/Tampermonkey
 
-the script will record your viewed Tag, when you press Button "You may like", will show Gallery with contain your favorite Tag.
+the script will record your visit Tag, when you press Button "You may like", will show gallery contain your favorite Tag.
 
-you can set Blacklist, then the Tag in side Blacklist will, not be factor for Recommend.
+you can set Blocklist, then the tag in Blocklist will not be factor for recommend.
 
-view more Gallery, then Recommend will be more accurate.
+view more gallery, then recommend will be more accurate.
 
 ![effect](https://github.com/zhuzemin/e-hentai_preference_push/raw/master/Screenshot-2020-1-12.jpg)
 
