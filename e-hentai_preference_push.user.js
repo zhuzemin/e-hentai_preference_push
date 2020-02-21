@@ -17,7 +17,7 @@
 // @include     https://e-hentai.org/tag/*
 // @include     https://exhentai.org/g/*
 // @include     https://e-hentai.org/g/*
-// @version     1.3
+// @version     1.31
 // @grant       GM_xmlhttpRequest
 // @grant         GM_registerMenuCommand
 // @grant         GM_setValue
@@ -89,7 +89,7 @@ function init() {
     try{
         VisitTags=JSON.parse(GM_getValue("VisitTags"));
         VisitLinks=GM_getValue("VisitLinks").split(",");
-        BlackTags=GM_getValue("BlackTags");
+        BlackTags=GM_getValue("BlockTags");
     }catch(e){
         debug("Not VisitTags.");
     }

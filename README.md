@@ -1,6 +1,6 @@
 Compatibility:
 Firefox/Chrome,
-Greasemonkey/Tampermonkey
+Tampermonkey <--- !!!Attention: Greasemonkey 4 was not support!
 
 the script will record your visit Tag, when you press Button "You may like", will show gallery contain your favorite Tag.
 
