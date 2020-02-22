@@ -17,7 +17,7 @@
 // @include     https://e-hentai.org/tag/*
 // @include     https://exhentai.org/g/*
 // @include     https://e-hentai.org/g/*
-// @version     1.31
+// @version     1.4
 // @grant       GM_xmlhttpRequest
 // @grant         GM_registerMenuCommand
 // @grant         GM_setValue
@@ -35,6 +35,8 @@ var config = {
 var debug = config.debug ? console.log.bind(console)  : function () {
 };
 
+//default matching tags number
+var defaultMatchTagNum=8;
 var hostname;
 var ContentPane;
 var ContentPaneChildNum;
@@ -46,6 +48,7 @@ var FavTags;
 var VisitLinks;
 var BlackTags;
 var DivCount;
+var btn;
 class Gallery{
     constructor(href,other=null) {
         this.method = 'GET';
@@ -62,7 +65,7 @@ class Gallery{
 class GalleryPage{
     constructor(keyword) {
         this.method = 'GET';
-        this.url = "https://"+hostname+"/?page="+keyword;
+        this.url = window.location.href.replace(/$|(\?page=\d*)/,"?page="+keyword);
         this.headers = {
             'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
             'Accept': 'application/atom+xml,application/xml,text/xml',
@@ -77,8 +80,17 @@ class GalleryPage{
 setUserPref(
     'BlockTags',
     'multi-work series;translated;original;',
-    'Set BlockTags',
+    "Tags that won't be fctor for reacommand",
     `These Tags will not be factor for recommand. split with ";". Example: multi-work series;translated;original`,
+    ','
+);
+
+// prepare UserPrefs
+setUserPref(
+    'matchTagsNum',
+    defaultMatchTagNum,
+    'How many tags has be matching',
+    `Number more bigger then result will be more precise, but more slower.`,
     ','
 );
 
@@ -141,9 +153,38 @@ function init() {
 }
 
 function CreateButton(){
-    var btn=document.createElement("button");
+    var style = document.createElement('style');
+    style.type = 'text/css';
+    style.innerHTML = `
+[data-tooltip]:before {
+    /* needed - do not touch */
+    content: attr(data-tooltip);
+    position: absolute;
+    opacity: 0;
+    
+    /* customizable */
+    transition: all 0.15s ease;
+    padding: 10px;
+    color: #333;
+    border-radius: 10px;
+    box-shadow: 2px 2px 1px silver;    
+}
+
+[data-tooltip]:hover:before {
+    /* needed - do not touch */
+    opacity: 1;
+    
+    /* customizable */
+    background: yellow;
+    margin-top: -50px;
+    margin-left: 20px;    
+}
+    `;
+    document.getElementsByTagName('head')[0].appendChild(style);
+    btn=document.createElement("button");
     btn.type="button";
     btn.onclick="";
+    btn.setAttribute('data-tooltip','Also you can use the filter')
     btn.innerHTML=`You may like`;
     btn.addEventListener('click',ShowRecommand);
     var p=document.querySelector("p.nopm");
@@ -161,19 +202,25 @@ function SetExtended(){
                 break;
             }
             else{
-                alert("Page will set to Extended view, After refresh click button again please.")
+                alert("Page will set to Extended view, After refresh click button again.")
                 window.location.href="https://"+hostname+"/?inline_set=dm_"+value;
             }
         }
     }
 
 }
-function  ShowRecommand() {
+function ShowRecommand(e) {
+    e.target.innerHTML="Searching...";
+    matchTagNum=GM_getValue('matchTagsNum')||defaultMatchTagNum;
+    debug('matchTagNum: '+matchTagNum)
     debug("ShowRecommand");
     //window.location.href+="#E-Hentai_Display_Tag_with_thumb";
     FavTags=[];
     GetFavTag();
-    debug(FavTags);
+    debug('FavTag: '+FavTags);
+    if(FavTags.length==0){
+        alert('Current record tags number: 0, so will just recommand ramdom gallery.')
+    }
     CreateStyle();
     SetExtended();
     var div=document.querySelector("div.ido");
@@ -196,6 +243,7 @@ function FillPane(TotalPage){
     var table=document.querySelector("table.ptt");
     var tds=table.querySelectorAll("td");
     var TotalPage=parseInt(tds[tds.length-2].firstChild.innerText);
+    debug('TotalPage: '+TotalPage)
     var RandomPage = Math.floor(Math.random() * (TotalPage+1 - 0));
     ObjectGalleryPage=new GalleryPage(RandomPage);
     debug("RandomPage: "+ObjectGalleryPage.url);
@@ -233,7 +281,7 @@ function GetGalleryTag(responseDetails,divs) {
                 }
                 var tag = link.innerText;
                 for (var FavTag of FavTags) {
-                    if (count >= 8 || count == FavTags.length) {
+                    if (count >= parseInt(matchTagNum) || count == FavTags.length) {
                         if (!VisitLinks.includes(href)) {
                             tr.className = "gl1t";
                             tr.style = "min-width:250px !important;width:263px !important;";
@@ -272,6 +320,7 @@ function GetGalleryTag(responseDetails,divs) {
             //for (var i = 0; i < divs.length; ++i) {
             //var div=divs[i];
             if (FilledChildNum == ContentPaneChildNum) {
+                btn.innerHTML="You may like";
                 debug("finish");
                 return;
             }
@@ -279,9 +328,12 @@ function GetGalleryTag(responseDetails,divs) {
                 debug("Insert divs");
                 for(div of divs){
                     ContentPane.insertBefore(div, null);
-                    FilledChildNum++;
 
                 }
+                btn.innerHTML="You may like";
+                debug("finish");
+                return;
+
             }
             else {
                 debug("DivCount: " + DivCount);
@@ -369,10 +421,16 @@ function SearchGallery(responseDetails) {
     var tbody=table.querySelector("tbody");
     var CurrentContentPane=tbody;
     var divs = CurrentContentPane.childNodes;
+    debug('CurrentContentPane.childNodes.length: '+CurrentContentPane.childNodes.length)
     for(var div of divs){
-        var backgroundPosition=div.querySelector("div.ir").style.backgroundPosition;
-        if(!["0px -21px","0px -1px"].includes(backgroundPosition)){
-            CurrentContentPane.removeChild(div);
+        debug("tr.innerHTML: "+div.innerHTML)
+        var ir=div.querySelector("div.ir");
+        if(ir!=null){
+            var backgroundPosition=ir.style.backgroundPosition;
+            if(!["0px -21px","0px -1px"].includes(backgroundPosition)){
+                CurrentContentPane.removeChild(div);
+            }
+
         }
     }
     divs = CurrentContentPane.childNodes;
@@ -443,6 +501,5 @@ function setUserPref(varName, defaultVal, menuText, promtText, sep){
     });
 }
 
-if (document.body) init();
-else window.addEventListener('DOMContentLoaded', init);
+window.addEventListener('load', init);
 
