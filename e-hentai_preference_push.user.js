@@ -1,14 +1,14 @@
 // ==UserScript==
-// @name        e-hentai "you may like"
-// @name:ja        e-hentai "you may like"
-// @name:zh-TW         e-hentai "you may like"
-// @name:zh-CN        e-hentai "you may like"
+// @name        e-hentai base history recommand gallerys
+// @name:ja        e-hentai base history recommand gallerys
+// @name:zh-TW         e-hentai base history recommand gallerys
+// @name:zh-CN        e-hentai base history recommand gallerys
 // @namespace   e-hentai_preference_push
 // @supportURL  https://github.com/zhuzemin
-// @description base visit history recommand gallery
-// @description:zh-CN base visit history recommand gallery
-// @description:zh-TW  base visit history recommand gallery
-// @description:ja base visit history recommand gallery
+// @description record your favorite tags, use to search gallerys
+// @description:zh-CN record your favorite tags, use to search gallerys
+// @description:zh-TW  record your favorite tags, use to search gallerys
+// @description:ja record your favorite tags, use to search gallerys
 // @include     https://exhentai.org/
 // @include     https://e-hentai.org/
 // @include     https://exhentai.org/?*
