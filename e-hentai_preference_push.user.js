@@ -17,7 +17,7 @@
 // @include     https://e-hentai.org/tag/*
 // @include     https://exhentai.org/g/*
 // @include     https://e-hentai.org/g/*
-// @version     1.41
+// @version     1.42
 // @grant       GM_xmlhttpRequest
 // @grant         GM_registerMenuCommand
 // @grant         GM_setValue
@@ -37,6 +37,7 @@ var debug = config.debug ? console.log.bind(console)  : function () {
 
 //default matching tags number
 var defaultMatchTagNum=8;
+var defaultBlockTags='multi-work series;translated;original;chinese;english;mosaic censorship;anthology';
 var hostname;
 var ContentPane;
 var ContentPaneChildNum;
@@ -65,7 +66,7 @@ class Gallery{
 class GalleryPage{
     constructor(keyword) {
         this.method = 'GET';
-        this.url = window.location.href.replace(/$|(\?page=\d*)/,"&page="+keyword);
+        this.url = window.location.href.replace(/&page=\d*/,'').replace(/$|(\?|page=\d*)/,"?page="+keyword);
         this.headers = {
             'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
             'Accept': 'application/atom+xml,application/xml,text/xml',
@@ -79,7 +80,7 @@ class GalleryPage{
 // prepare UserPrefs
 setUserPref(
     'BlockTags',
-    'multi-work series;translated;original;',
+    defaultBlockTags,
     "Tags that won't be fctor for reacommand",
     `These Tags will not be factor for recommand. split with ";". Example: multi-work series;translated;original`,
     ','
@@ -106,7 +107,7 @@ function init() {
         debug("Not VisitTags.");
     }
     if(BlackTags==undefined||BlackTags.length ==0){
-        BlackTags="";
+        BlackTags=defaultBlockTags;
 
     }
     if(VisitTags==undefined||VisitTags.length ==0){
