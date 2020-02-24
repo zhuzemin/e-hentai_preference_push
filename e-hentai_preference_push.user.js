@@ -17,7 +17,7 @@
 // @include     https://e-hentai.org/tag/*
 // @include     https://exhentai.org/g/*
 // @include     https://e-hentai.org/g/*
-// @version     1.4
+// @version     1.41
 // @grant       GM_xmlhttpRequest
 // @grant         GM_registerMenuCommand
 // @grant         GM_setValue
@@ -65,7 +65,7 @@ class Gallery{
 class GalleryPage{
     constructor(keyword) {
         this.method = 'GET';
-        this.url = window.location.href.replace(/$|(\?page=\d*)/,"?page="+keyword);
+        this.url = window.location.href.replace(/$|(\?page=\d*)/,"&page="+keyword);
         this.headers = {
             'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
             'Accept': 'application/atom+xml,application/xml,text/xml',
